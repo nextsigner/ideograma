@@ -16,35 +16,35 @@ ApplicationWindow{
 
     Audio{
         id: audio1
-        source: unik.currentFolderPath()+"/sounds/beep.wav"
+        source: unik?unik.currentFolderPath()+"/sounds/beep.wav":''
         //autoPlay: true
         autoLoad: true
         volume: app.volume
     }
     Audio{
         id: audio2
-        source: unik.currentFolderPath()+"/sounds/final.mp3"
+        source: unik?unik.currentFolderPath()+"/sounds/final.mp3":''
         //autoPlay: true
         autoLoad: true
         volume: app.volume
     }
     Audio{
         id: audio3
-        source: unik.currentFolderPath()+"/sounds/terminando.mp3"
+        source: unik?unik.currentFolderPath()+"/sounds/terminando.mp3":''
         //autoPlay: true
         autoLoad: true
         volume: app.volume
     }
     Audio{
         id: audio4
-        source: unik.currentFolderPath()+"/sounds/valida.mp3"
+        source: unik?unik.currentFolderPath()+"/sounds/valida.mp3":''
         //autoPlay: true
         autoLoad: true
         volume: app.volume
     }
     Audio{
         id: audio5
-        source: unik.currentFolderPath()+"/sounds/no-valida.mp3"
+        source: unik?unik.currentFolderPath()+"/sounds/no-valida.mp3":''
         //autoPlay: true
         autoLoad: true
         volume: app.volume
@@ -87,8 +87,8 @@ ApplicationWindow{
                         focus=false
                         crono.iniciarPausar()
                     }
-                    Keys.onReturnPressed: buscar()
-                    Keys.onEnterPressed: buscar()
+                    Keys.onReturnPressed: buscar(tiPalabra.text)
+                    Keys.onEnterPressed: buscar(tiPalabra.text)
                     Rectangle{
                         width: parent.width+app.fs*0.5
                         height: parent.height+app.fs*0.5
@@ -101,7 +101,7 @@ ApplicationWindow{
                 }
                 Button{
                     text: 'Buscar'
-                    onClicked: buscar()
+                    onClicked: buscar(tiPalabra.text)
                 }
             }
             Rectangle{
@@ -216,8 +216,63 @@ ApplicationWindow{
             unik.restartApp('-folder='+unik.currentFolderPath())
         }
     }
-    function buscar(){
-        let cmd='sh '+unik.currentFolderPath()+'/check.sh "'+tiPalabra.text+'"'
-        uqpBuscar.run(cmd)
+    function buscar(palabra) {
+      // Reemplazamos 'palabra' en la URL por la palabra que se busca
+      const url = 'https://rae-api.com/api/words/'+palabra;
+
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', url, true);
+
+      xhr.onreadystatechange = function () {
+        // Si la solicitud está completa (readyState 4) y la respuesta es exitosa (status 200)
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            console.log('JSON: '+xhr.responseText)
+            revData(xhr.responseText)
+          /*try {
+            const data = JSON.parse(xhr.responseText);
+
+            // La API devuelve un objeto con la propiedad 'error' si la palabra no existe
+            if (data.hasOwnProperty('error')) {
+              console.log('No existe esta palabra');
+            } else {
+              // Si la palabra existe, se pueden procesar los datos
+              console.log('La palabra existe. Datos obtenidos:');
+              console.log(data);
+               revData(data)
+              // Aquí puedes añadir más lógica para usar los datos
+            }
+          } catch (e) {
+            console.error('Error al parsear el JSON:', e);
+          }*/
+        } else if (xhr.readyState === 4 && xhr.status !== 200) {
+          //console.error('Error en la solicitud. Estado:', xhr.status);
+            revData('NORAE')
+        }
+      };
+
+      xhr.send();
     }
+    function revData(logData) {
+        if(logData.indexOf('NORAE')>=0){
+            ta.clear()
+            ta.text+='Esta palabra NO EXISTE!!!\n\n'
+            audio5.play()
+            return
+        }
+        audio4.play()
+        ta.clear()
+        let j=JSON.parse(logData.replace(/\n/g, ''))
+        //let senses=j.data.senses
+        let meanings=j.data.meanings
+        let cantRaws=meanings[0].senses.length
+        for(var i=0;i<cantRaws;i++){
+            let raw=meanings[0].senses[i].raw
+            let des=meanings[0].senses[i].description
+            if(raw)ta.text+='Se usa como: '+raw+'\n\n'
+            if(des)ta.text+='Descripción: '+des+'\n\n'
+            //ta.text+=JSON.stringify(meanings[0].senses[i], null, 2)+'\n'
+        }
+
+    }
+
 }

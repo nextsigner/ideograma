@@ -1,1 +1,1 @@
-Se suben los qmls y los sonidos
+Se buscan palabras con xmlHttpRequest
