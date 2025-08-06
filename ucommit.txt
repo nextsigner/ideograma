@@ -1,1 +1,1 @@
-Se comienza a agregar sqlite
+Se programa LisView 1

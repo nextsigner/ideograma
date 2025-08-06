@@ -59,8 +59,62 @@ ApplicationWindow{
         anchors.fill: parent
         Row{
             spacing: app.fs
-            anchors.centerIn: parent
-            Crono{id: crono}
+            //anchors.centerIn: parent
+            Column{
+                width: app.fs*20
+                //anchors.horizontalCenter: parent.horizontalCenter
+               Rectangle{
+                    id: xTabla
+                    width: parent.width-app.fs
+                    height: app.fs*6
+                    color: app.c1
+                    border.width: 2
+                    border.color: app.c2
+                   anchors.horizontalCenter: parent.horizontalCenter
+                    ListView{
+                        id: lv
+                        width: parent.width
+                        height: parent.height
+                        model: lm
+                        delegate: compItemPalabras
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        ListModel{
+                            id: lm
+                            function add(id, par, pal, pts){
+                                return{
+                                    _id: id,
+                                    participante: par,
+                                    palabra: pal,
+                                    puntos: pts
+                                }
+                            }
+                        }
+                        Component{
+                            id: compItemPalabras
+                            Rectangle{
+                                width: lv.width
+                                height: app.fs*1.2
+                                Row{
+                                    anchors.centerIn: parent
+                                    Cell{
+                                        width: lv.width*0.2
+                                        dato: participante
+                                    }
+                                    Cell{
+                                        width: lv.width*0.6
+                                        dato: palabra
+                                    }
+                                    Cell{
+                                        width: lv.width*0.2
+                                        dato: puntos
+                                    }
+                                }
+                            }
+                        }
+                    }
+               }
+                Crono{id: crono}
+            }
             Column{
                 spacing: app.fs
                 //anchors.centerIn: parent
@@ -186,7 +240,8 @@ ApplicationWindow{
     Shortcut{
         sequence: 'Ctrl+Return'
         onActivated: {
-            insertarJugada(app.cPart, tiPalabra.text, app.uPun, app.cPartido)
+            let ins=insertarJugada(app.cPart, tiPalabra.text, app.uPun, app.cPartido)
+            ta.text+='ins:'+ins+'\n'
             updateListPart()
         }
     }
@@ -365,7 +420,7 @@ ApplicationWindow{
         let tableName = "jugadas";
         let sql = '
                     INSERT INTO '+tableName+' (part, palabra, puntos, partido)
-                    VALUES (\''+part+'\', \''+pal+'\', '+pun+', '+partido+');
+                    VALUES (\''+part+'\', \''+pal+'\', '+pun+', \''+partido+'\');
                 '
         return unik.sqlQuery(sql)
     }
@@ -382,8 +437,8 @@ ApplicationWindow{
             for(var i2=0;i2<filas[i].col.length;i2++){
                 row.push(filas[i].col[i2])
             }
-            // lm.append(lm.add(row))
-            ta.text+=row.toString()+'\n'
+             lm.append(lm.add(row[0], row[1], row[2], row[3]))
+            //ta.text+=row.toString()+'\n'
         }
     }
 }
