@@ -1,1 +1,1 @@
-Se buscan palabras con xmlHttpRequest
+Se comienza a agregar sqlite
