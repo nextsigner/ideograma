@@ -58,20 +58,21 @@ ApplicationWindow{
         id: xApp
         anchors.fill: parent
         Row{
-            spacing: app.fs
-            //anchors.centerIn: parent
+            spacing: app.fs*0.25
+            anchors.horizontalCenter: parent.horizontalCenter
             Column{
-                width: app.fs*20
-                //anchors.horizontalCenter: parent.horizontalCenter
-               Rectangle{
+                width: xApp.width*0.5-app.fs*0.25
+                spacing: app.fs*0.25
+                Rectangle{
                     id: xTabla
-                    width: parent.width-app.fs
+                    width: parent.width
                     height: app.fs*6
                     color: app.c1
                     border.width: 2
                     border.color: app.c2
                    anchors.horizontalCenter: parent.horizontalCenter
-                    ListView{
+                   clip: true
+                   ListView{
                         id: lv
                         width: parent.width
                         height: parent.height
@@ -113,22 +114,69 @@ ApplicationWindow{
                         }
                     }
                }
-                Crono{id: crono}
+                Crono{
+                    id: crono
+                    width: parent.width
+                }
             }
             Column{
-                spacing: app.fs
-                //anchors.centerIn: parent
-                Text{
-                    text: 'Validar Palabras'
-                    color: app.c2
-                    font.pixelSize: app.fs
+                width: xApp.width*0.5-app.fs*0.25
+                spacing: app.fs*0.5
+                Rectangle{
+                     id: xTablaPos
+                     width: parent.width
+                     height: app.fs*6
+                     color: app.c1
+                     border.width: 2
+                     border.color: app.c2
                     anchors.horizontalCenter: parent.horizontalCenter
+                    clip: true
+                     ListView{
+                         id: lvPos
+                         width: parent.width
+                         height: parent.height
+                         model: lmPos
+                         delegate: compItemPalabras
+                         anchors.horizontalCenter: parent.horizontalCenter
+                         ListModel{
+                             id: lmPos
+                             function add(par, pts){
+                                 return{
+                                     participante: par,
+                                     puntos: pts
+                                 }
+                             }
+                         }
+                         Component{
+                             id: compItemPos
+                             Rectangle{
+                                 width: lvPos.width
+                                 height: app.fs*1.2
+                                 Row{
+                                     anchors.centerIn: parent
+                                     Cell{
+                                         width: lv.width*0.2
+                                         dato: participante
+                                     }
+                                     Cell{
+                                         width: lv.width*0.6
+                                         dato: palabra
+                                     }
+                                     Cell{
+                                         width: lv.width*0.2
+                                         dato: puntos
+                                     }
+                                 }
+                             }
+                         }
+                     }
                 }
                 Row{
-                    spacing: app.fs
+                    spacing: app.fs*0.5
                     height: app.fs*2
                     anchors.horizontalCenter: parent.horizontalCenter
                     Text{
+                        id: labelPal
                         text: '<b>Palabra:</b>'
                         color: app.c2
                         font.pixelSize: app.fs*2
@@ -136,7 +184,7 @@ ApplicationWindow{
                     }
                     TextInput{
                         id: tiPalabra
-                        width: app.fs*20
+                        width: parent.parent.width-labelPal.contentWidth-botBuscar.width-app.fs
                         height: app.fs*2
                         color: app.c2
                         font.pixelSize: app.fs*2
@@ -163,6 +211,7 @@ ApplicationWindow{
                         }
                     }
                     Button{
+                        id: botBuscar
                         text: 'Buscar'
                         onClicked: buscar(tiPalabra.text)
                     }
@@ -176,8 +225,8 @@ ApplicationWindow{
                     }
                 }
                 Rectangle{
-                    width: parent.width
-                    height: app.fs*16
+                    width: parent.parent.width-app.fs
+                    height: app.fs*12
                     color: app.c1
                     border.width: 2
                     border.color: app.c2
@@ -199,39 +248,11 @@ ApplicationWindow{
             }
         }
     }
-    UnikQProcess{
-        id: uqpBuscar
-        onLogDataChanged: {
-            if(logData.indexOf('NORAE')>=0){
-                ta.clear()
-                ta.text+='Esta palabra NO EXISTE!!!\n\n'
-                audio5.play()
-                return
-            }
-            audio4.play()
-            ta.clear()
-            let j=JSON.parse(logData.replace(/\n/g, ''))
-            //let senses=j.data.senses
-            let meanings=j.data.meanings
-            let cantRaws=meanings[0].senses.length
-            for(var i=0;i<cantRaws;i++){
-                let raw=meanings[0].senses[i].raw
-                let des=meanings[0].senses[i].description
-                if(raw)ta.text+='Se usa como: '+raw+'\n\n'
-                if(des)ta.text+='Descripción: '+des+'\n\n'
-                //ta.text+=JSON.stringify(meanings[0].senses[i], null, 2)+'\n'
-            }
-
-        }
-    }
     Item{
         id: xuqp
     }
     Component.onCompleted: {
         initSqlite()
-        //tiPalabra.focus=true
-        //tiPalabra.text="Hola"
-        //buscar()
     }
     Shortcut{
         sequence: 'Space'
