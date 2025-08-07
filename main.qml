@@ -4,6 +4,8 @@ import QtQuick.Window 2.0
 import QtMultimedia 5.0
 import unik.UnikQProcess 1.0
 
+import Qt.labs.settings 1.1
+
 ApplicationWindow{
     id: app
     visible: true
@@ -14,10 +16,15 @@ ApplicationWindow{
     property color c2: 'white'
     property real volume: 1.0
 
-    property string cPartido: 'PartidoPrueba'
-    property string cPart: 'RiPrueba'
     property string uPal: '?'
     property int uPun: 0
+
+    Settings{
+        id: apps
+        property string cPartido: 'PartidoPrueba'
+        property string cPart: 'RiPrueba'
+        property int cCantJugadores: 0
+    }
 
     Audio{
         id: audio1
@@ -57,197 +64,210 @@ ApplicationWindow{
     Item{
         id: xApp
         anchors.fill: parent
-        Row{
+        Column{
             spacing: app.fs*0.25
-            anchors.horizontalCenter: parent.horizontalCenter
-            Column{
-                width: xApp.width*0.5-app.fs*0.25
-                spacing: app.fs*0.25
-                Rectangle{
-                    id: xTabla
-                    width: parent.width
-                    height: app.fs*6
-                    color: app.c1
-                    border.width: 2
-                    border.color: app.c2
-                   anchors.horizontalCenter: parent.horizontalCenter
-                   clip: true
-                   ListView{
-                        id: lv
-                        width: parent.width
-                        height: parent.height
-                        model: lm
-                        delegate: compItemPalabras
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        ListModel{
-                            id: lm
-                            function add(id, par, pal, pts){
-                                return{
-                                    _id: id,
-                                    participante: par,
-                                    palabra: pal,
-                                    puntos: pts
-                                }
-                            }
-                        }
-                        Component{
-                            id: compItemPalabras
-                            Rectangle{
-                                width: lv.width
-                                height: app.fs*1.2
-                                Row{
-                                    anchors.centerIn: parent
-                                    Cell{
-                                        width: lv.width*0.2
-                                        dato: participante
-                                    }
-                                    Cell{
-                                        width: lv.width*0.6
-                                        dato: palabra
-                                    }
-                                    Cell{
-                                        width: lv.width*0.2
-                                        dato: puntos
-                                    }
-                                }
-                            }
-                        }
-                    }
-               }
-                Crono{
-                    id: crono
-                    width: parent.width
+            Row{
+                spacing: app.fs*0.5
+                anchors.horizontalCenter: parent.horizontalCenter
+                Text{
+                    text: '<b>Partido: </b>'+apps.cPartido
+                    color: app.c2
+                    font.pixelSize: app.fs
                 }
             }
-            Column{
-                width: xApp.width*0.5-app.fs*0.25
-                spacing: app.fs*0.5
-                Rectangle{
-                     id: xTablaPos
-                     width: parent.width
-                     height: app.fs*6
-                     color: app.c1
-                     border.width: 2
-                     border.color: app.c2
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    clip: true
-                     ListView{
-                         id: lvPos
-                         width: parent.width
-                         height: parent.height
-                         model: lmPos
-                         delegate: compItemPalabras
-                         anchors.horizontalCenter: parent.horizontalCenter
-                         ListModel{
-                             id: lmPos
-                             function add(par, pts){
-                                 return{
-                                     participante: par,
-                                     puntos: pts
-                                 }
-                             }
-                         }
-                         Component{
-                             id: compItemPos
-                             Rectangle{
-                                 width: lvPos.width
-                                 height: app.fs*1.2
-                                 Row{
-                                     anchors.centerIn: parent
-                                     Cell{
-                                         width: lv.width*0.2
-                                         dato: participante
-                                     }
-                                     Cell{
-                                         width: lv.width*0.6
-                                         dato: palabra
-                                     }
-                                     Cell{
-                                         width: lv.width*0.2
-                                         dato: puntos
-                                     }
-                                 }
-                             }
-                         }
-                     }
-                }
-                Row{
-                    spacing: app.fs*0.5
-                    height: app.fs*2
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    Text{
-                        id: labelPal
-                        text: '<b>Palabra:</b>'
-                        color: app.c2
-                        font.pixelSize: app.fs*2
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-                    TextInput{
-                        id: tiPalabra
-                        width: parent.parent.width-labelPal.contentWidth-botBuscar.width-app.fs
-                        height: app.fs*2
-                        color: app.c2
-                        font.pixelSize: app.fs*2
-                        anchors.verticalCenter: parent.verticalCenter
-                        onTextChanged: {
-                            ta.text=''
-                            app.uPal=text
-                            app.uPun=calcularPuntos(text)
-                        }
-                        Keys.onSpacePressed: {
-                            focus=false
-                            crono.iniciarPausar()
-                        }
-                        Keys.onReturnPressed: buscar(tiPalabra.text)
-                        Keys.onEnterPressed: buscar(tiPalabra.text)
-                        Rectangle{
-                            width: parent.width+app.fs*0.5
-                            height: parent.height+app.fs*0.5
-                            color: 'transparent'
-                            border.color: app.c2
-                            border.width: 2
-                            z: parent.z-1
-                            anchors.centerIn: parent
-                        }
-                    }
-                    Button{
-                        id: botBuscar
-                        text: 'Buscar'
-                        onClicked: buscar(tiPalabra.text)
-                    }
-                }
-                Row{
-                    Text{
-                        text: '<b>Vale: </b> '+app.uPun+' pts.'
-                        color: app.c2
-                        font.pixelSize: app.fs*2
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-                }
-                Rectangle{
-                    width: parent.parent.width-app.fs
-                    height: app.fs*12
-                    color: app.c1
-                    border.width: 2
-                    border.color: app.c2
-                    clip: true
-                    Flickable{
-                        contentWidth: parent.width
-                        contentHeight: ta.contentHeight+app.fs
-                        anchors.fill: parent
-                        TextArea{
-                            id: ta
+            Row{
+                spacing: app.fs*0.25
+                anchors.horizontalCenter: parent.horizontalCenter
+                Column{
+                    width: xApp.width*0.5-app.fs*0.25
+                    spacing: app.fs*0.25
+                    Rectangle{
+                        id: xTabla
+                        width: parent.width
+                        height: app.fs*6
+                        color: app.c1
+                        border.width: 2
+                        border.color: app.c2
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        clip: true
+                        ListView{
+                            id: lv
                             width: parent.width
-                            height: parent.height//contentHeight
+                            height: parent.height
+                            model: lm
+                            delegate: compItemPalabras
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            ListModel{
+                                id: lm
+                                function add(id, par, pal, pts){
+                                    return{
+                                        _id: id,
+                                        participante: par,
+                                        palabra: pal,
+                                        puntos: pts
+                                    }
+                                }
+                            }
+                            Component{
+                                id: compItemPalabras
+                                Rectangle{
+                                    width: lv.width
+                                    height: app.fs*1.2
+                                    Row{
+                                        anchors.centerIn: parent
+                                        Cell{
+                                            width: lv.width*0.2
+                                            dato: participante
+                                        }
+                                        Cell{
+                                            width: lv.width*0.6
+                                            dato: palabra
+                                        }
+                                        Cell{
+                                            width: lv.width*0.2
+                                            dato: puntos
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    Crono{
+                        id: crono
+                        width: parent.width
+                    }
+                }
+                Column{
+                    width: xApp.width*0.5-app.fs*0.25
+                    spacing: app.fs*0.5
+                    Rectangle{
+                        id: xTablaPos
+                        width: parent.width
+                        height: app.fs*6
+                        color: app.c1
+                        border.width: 2
+                        border.color: app.c2
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        clip: true
+                        ListView{
+                            id: lvPos
+                            width: parent.width
+                            height: parent.height
+                            model: lmPos
+                            delegate: compItemPalabras
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            ListModel{
+                                id: lmPos
+                                function add(par, pts){
+                                    return{
+                                        participante: par,
+                                        puntos: pts
+                                    }
+                                }
+                            }
+                            Component{
+                                id: compItemPos
+                                Rectangle{
+                                    width: lvPos.width
+                                    height: app.fs*1.2
+                                    Row{
+                                        anchors.centerIn: parent
+                                        Cell{
+                                            width: lv.width*0.2
+                                            dato: participante
+                                        }
+                                        Cell{
+                                            width: lv.width*0.6
+                                            dato: palabra
+                                        }
+                                        Cell{
+                                            width: lv.width*0.2
+                                            dato: puntos
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    Row{
+                        spacing: app.fs*0.5
+                        height: app.fs*2
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        Text{
+                            id: labelPal
+                            text: '<b>Palabra:</b>'
                             color: app.c2
                             font.pixelSize: app.fs*2
-                            wrapMode: Text.WordWrap
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+                        TextInput{
+                            id: tiPalabra
+                            width: parent.parent.width-labelPal.contentWidth-botBuscar.width-app.fs
+                            height: app.fs*2
+                            color: app.c2
+                            font.pixelSize: app.fs*2
+                            anchors.verticalCenter: parent.verticalCenter
+                            onTextChanged: {
+                                ta.text=''
+                                app.uPal=text
+                                app.uPun=calcularPuntos(text)
+                            }
+                            Keys.onSpacePressed: {
+                                focus=false
+                                crono.iniciarPausar()
+                            }
+                            Keys.onReturnPressed: buscar(tiPalabra.text)
+                            Keys.onEnterPressed: buscar(tiPalabra.text)
+                            Rectangle{
+                                width: parent.width+app.fs*0.5
+                                height: parent.height+app.fs*0.5
+                                color: 'transparent'
+                                border.color: app.c2
+                                border.width: 2
+                                z: parent.z-1
+                                anchors.centerIn: parent
+                            }
+                        }
+                        Button{
+                            id: botBuscar
+                            text: 'Buscar'
+                            onClicked: buscar(tiPalabra.text)
+                        }
+                    }
+                    Row{
+                        Text{
+                            text: '<b>Vale: </b> '+app.uPun+' pts.'
+                            color: app.c2
+                            font.pixelSize: app.fs*2
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+                    }
+                    Rectangle{
+                        width: parent.parent.width-app.fs
+                        height: app.fs*12
+                        color: app.c1
+                        border.width: 2
+                        border.color: app.c2
+                        clip: true
+                        Flickable{
+                            contentWidth: parent.width
+                            contentHeight: ta.contentHeight+app.fs
+                            anchors.fill: parent
+                            TextArea{
+                                id: ta
+                                width: parent.width
+                                height: parent.height//contentHeight
+                                color: app.c2
+                                font.pixelSize: app.fs*2
+                                wrapMode: Text.WordWrap
+                            }
                         }
                     }
                 }
             }
         }
     }
+    SetNewPart{id: snp}
     Item{
         id: xuqp
     }
@@ -259,9 +279,22 @@ ApplicationWindow{
         onActivated: crono.iniciarPausar()
     }
     Shortcut{
+        sequence: 'Ctrl+Tab'
+        onActivated: {
+            if(snp.visible){
+                snp.toTab()
+                return
+            }
+        }
+    }
+    Shortcut{
         sequence: 'Ctrl+Return'
         onActivated: {
-            let ins=insertarJugada(app.cPart, tiPalabra.text, app.uPun, app.cPartido)
+            if(snp.visible){
+                snp.toEnter()
+                return
+            }
+            let ins=insertarJugada(apps.cPart, tiPalabra.text, app.uPun, apps.cPartido)
             ta.text+='ins:'+ins+'\n'
             updateListPart()
         }
@@ -290,6 +323,10 @@ ApplicationWindow{
     Shortcut{
         sequence: 'Esc'
         onActivated: {
+            if(snp.visible){
+                snp.visible=false
+                return
+            }
             Qt.quit()
         }
     }
@@ -314,6 +351,10 @@ ApplicationWindow{
     Shortcut{
         sequence: 'Down'
         onActivated: {
+            if(snp.visible){
+                snp.toDown()
+                return
+            }
             unik.restartApp('-folder='+unik.currentFolderPath())
         }
     }
@@ -458,7 +499,7 @@ ApplicationWindow{
             for(var i2=0;i2<filas[i].col.length;i2++){
                 row.push(filas[i].col[i2])
             }
-             lm.append(lm.add(row[0], row[1], row[2], row[3]))
+            lm.append(lm.add(row[0], row[1], row[2], row[3]))
             //ta.text+=row.toString()+'\n'
         }
     }
